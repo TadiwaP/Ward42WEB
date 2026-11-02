@@ -1,0 +1,46 @@
+<!-- 
+  _macros.html - one small helper used by every form.
+
+  A "macro" is like a Python function for templates. field_block() draws one
+  form field: its label, the box, an optional hint, and the error message.
+  Writing it once means every field is built the same, accessible way.
+
+  The label is linked to the box (label "for" = box "id"), and the box points
+  to its hint and error with aria-describedby, so a screen reader reads them out.
+-->
+{% macro field_block(field, css_class="form-control", hint="", extra={}) %}
+  {# Work out which hint and error text belong to this field. #}
+  {% set error_id = field.id ~ "-error" %}
+  {% set hint_id = field.id ~ "-hint" %}
+  {% set attrs = {"aria-describedby": (hint_id ~ " " ~ error_id) if hint else error_id} %}
+  {% if field.errors %}
+    {% set _ = attrs.update({"aria-invalid": "true"}) %}
+  {% endif %}
+  {% set _ = attrs.update(extra) %}
+
+  <div class="mb-3">
+    {{ field.label(class="form-label") }}
+    {% if hint %}
+      <div class="form-text mt-0 mb-1" id="{{ hint_id }}">{{ hint }}</div>
+    {% endif %}
+    {{ field(class=css_class ~ (" is-invalid" if field.errors else ""), **attrs) }}
+    {# Bootstrap only shows this box when the field above has "is-invalid". #}
+    <div class="invalid-feedback" id="{{ error_id }}">
+      {% for message in field.errors %}{{ message }} {% endfor %}
+    </div>
+  </div>
+{% endmacro %}
+
+{# A box at the top of a form that lists every problem, with links to the fields. #}
+{% macro error_summary(form) %}
+  {% if form.errors %}
+    <div class="alert alert-danger" role="alert">
+      <h2 class="h5">Please fix these problems</h2>
+      <ul class="mb-0">
+        {% for name, messages in form.errors.items() %}
+          <li><a href="#{{ form[name].id }}">{{ form[name].label.text }}</a>: {{ messages|join(' ') }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+{% endmacro %}

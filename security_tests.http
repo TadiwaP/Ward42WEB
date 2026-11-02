@@ -1,0 +1,237 @@
+### ===========================================================================
+### security_tests.http - attack requests for Ward 42 Fix-It (Question D2)
+###
+### Needs the REST Client extension in VS Code (by Huachao Mao).
+### Start the app first with:  flask run
+###
+### HOW TO USE
+###   1. Click "Send Request" above request 1. In the answer, find the line
+###      <input type="hidden" name="csrf_token" value="...">
+###      and copy the long value.
+###   2. Paste it after @csrf = on the line below (replace PASTE_TOKEN_HERE).
+###      REST Client keeps the session cookie automatically, so the token
+###      keeps working for the next requests (it lasts about one hour).
+###   3. Click "Send Request" above each attack and take a screenshot of the
+###      response. Each one should be REJECTED, as written in its comment.
+### ===========================================================================
+
+@host = http://127.0.0.1:5000
+@csrf = PASTE_TOKEN_HERE
+
+
+### 1. SETUP - get the report form, a session cookie and a CSRF token
+GET {{host}}/report
+
+
+### 2. SQL INJECTION in the cell number field
+# Attack: the cell number is changed to  0821234567' OR '1'='1
+# Expected: 400 BAD REQUEST. The server checks the cell number against
+# ^0\d{9}$, so anything that is not 10 digits is refused. Even if it got
+# through, the database layer uses parameterised queries (the ORM).
+POST {{host}}/report
+Content-Type: multipart/form-data; boundary=W42Boundary
+
+--W42Boundary
+Content-Disposition: form-data; name="csrf_token"
+
+{{csrf}}
+--W42Boundary
+Content-Disposition: form-data; name="category"
+
+Pothole
+--W42Boundary
+Content-Disposition: form-data; name="street"
+
+12 Tsamaya Road
+--W42Boundary
+Content-Disposition: form-data; name="description"
+
+Large pothole near the school gate
+--W42Boundary
+Content-Disposition: form-data; name="reporter_name"
+
+Test Resident
+--W42Boundary
+Content-Disposition: form-data; name="reporter_cell"
+
+0821234567' OR '1'='1
+--W42Boundary--
+
+
+### 3. SQL INJECTION in the status lookup address
+# Attack: the reference is changed to  W42-0001' OR '1'='1
+# Expected: 400 BAD REQUEST with "That reference does not look right".
+# A reference must match ^W42-\d{4,}$ and the lookup uses an ORM filter.
+GET {{host}}/status?reference=W42-0001'%20OR%20'1'='1
+
+
+### 4. CROSS-SITE SCRIPTING (XSS) in the category field
+# Attack: the category is changed to a <script> tag
+# Expected: 400 BAD REQUEST. The category must be one of the five allowed
+# values, so the script is refused and never stored.
+POST {{host}}/report
+Content-Type: multipart/form-data; boundary=W42Boundary
+
+--W42Boundary
+Content-Disposition: form-data; name="csrf_token"
+
+{{csrf}}
+--W42Boundary
+Content-Disposition: form-data; name="category"
+
+<script>alert('XSS')</script>
+--W42Boundary
+Content-Disposition: form-data; name="street"
+
+12 Tsamaya Road
+--W42Boundary
+Content-Disposition: form-data; name="description"
+
+Large pothole near the school gate
+--W42Boundary
+Content-Disposition: form-data; name="reporter_name"
+
+Test Resident
+--W42Boundary
+Content-Disposition: form-data; name="reporter_cell"
+
+0821234567
+--W42Boundary--
+
+
+### 5. XSS reflected back from the status lookup
+# Attack: a <script> tag is sent as the reference
+# Expected: 400 BAD REQUEST. Look in the answer (in the Reference number
+# box): the text is shown as &lt;SCRIPT&gt;ALERT(1)... (harmless text, in
+# capitals because the lookup capitalises what you type), never as a real
+# <script> tag, because Jinja escapes everything it prints. The
+# Content-Security-Policy header in the response also blocks inline scripts.
+GET {{host}}/status?reference=%3Cscript%3Ealert(1)%3C/script%3E
+
+
+### 6. MISSING CSRF TOKEN
+# Attack: a form is sent with NO csrf_token, like a forged form on another website
+# Expected: 400 BAD REQUEST. "Your form could not be checked, so it was not sent."
+POST {{host}}/report
+Content-Type: multipart/form-data; boundary=W42Boundary
+
+--W42Boundary
+Content-Disposition: form-data; name="category"
+
+Pothole
+--W42Boundary
+Content-Disposition: form-data; name="street"
+
+12 Tsamaya Road
+--W42Boundary
+Content-Disposition: form-data; name="description"
+
+Large pothole near the school gate
+--W42Boundary
+Content-Disposition: form-data; name="reporter_name"
+
+Test Resident
+--W42Boundary
+Content-Disposition: form-data; name="reporter_cell"
+
+0821234567
+--W42Boundary--
+
+
+### 7. INVALID UPLOAD - a script disguised as a picture
+# Attack: a PHP script is uploaded with the name shell.png and an image content type
+# Expected: 400 BAD REQUEST. The name and content type look fine, but the
+# server reads the first bytes of the file and sees it is not a real
+# JPEG, PNG or WebP: "That file is not a real JPEG, PNG or WebP image."
+POST {{host}}/report
+Content-Type: multipart/form-data; boundary=W42Boundary
+
+--W42Boundary
+Content-Disposition: form-data; name="csrf_token"
+
+{{csrf}}
+--W42Boundary
+Content-Disposition: form-data; name="category"
+
+Pothole
+--W42Boundary
+Content-Disposition: form-data; name="street"
+
+12 Tsamaya Road
+--W42Boundary
+Content-Disposition: form-data; name="description"
+
+Large pothole near the school gate
+--W42Boundary
+Content-Disposition: form-data; name="reporter_name"
+
+Test Resident
+--W42Boundary
+Content-Disposition: form-data; name="reporter_cell"
+
+0821234567
+--W42Boundary
+Content-Disposition: form-data; name="photo"; filename="shell.png"
+Content-Type: image/png
+
+<?php echo shell_exec($_GET['cmd']); ?>
+--W42Boundary--
+
+
+### 8. INVALID UPLOAD - a forbidden file extension
+# Attack: a file called shell.php is uploaded
+# Expected: 400 BAD REQUEST. "Photos must be JPEG, PNG or WebP files."
+POST {{host}}/report
+Content-Type: multipart/form-data; boundary=W42Boundary
+
+--W42Boundary
+Content-Disposition: form-data; name="csrf_token"
+
+{{csrf}}
+--W42Boundary
+Content-Disposition: form-data; name="category"
+
+Pothole
+--W42Boundary
+Content-Disposition: form-data; name="street"
+
+12 Tsamaya Road
+--W42Boundary
+Content-Disposition: form-data; name="description"
+
+Large pothole near the school gate
+--W42Boundary
+Content-Disposition: form-data; name="reporter_name"
+
+Test Resident
+--W42Boundary
+Content-Disposition: form-data; name="reporter_cell"
+
+0821234567
+--W42Boundary
+Content-Disposition: form-data; name="photo"; filename="shell.php"
+Content-Type: image/png
+
+<?php echo 'hacked'; ?>
+--W42Boundary--
+
+
+### 9. BROKEN ACCESS CONTROL - coordinator page without logging in
+# Attack: someone who is not logged in asks for the list of all reports
+# Expected: 302 FOUND, redirecting to /login. No personal data is shown.
+# (Make sure you are logged out, or use a fresh VS Code window.)
+GET {{host}}/reports
+
+
+### 10. BROKEN ACCESS CONTROL - the JSON API without logging in
+# Expected: 401 UNAUTHORIZED with {"error": "Login required"}
+GET {{host}}/api/reports/summary
+
+
+### 11. PATH TRAVERSAL on the photo address
+# Attack: try to read a file outside the uploads folder (here, app.py)
+# Expected: 404 NOT FOUND. The photo address only accepts a single file name
+# (no slashes), so this request never reaches the code that reads files.
+# Even if it did, send_from_directory refuses paths outside the uploads
+# folder, and photos need a coordinator login anyway.
+GET {{host}}/photos/..%2Fapp.py

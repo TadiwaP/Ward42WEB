@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Check status - Ward 42 Fix-It{% endblock %}
+
+{% block content %}
+<h1>Check the status of a report</h1>
+
+{# This form uses GET, so the reference shows in the address and can be bookmarked. #}
+<form method="get" action="{{ url_for('main.status') }}" class="mb-4">
+  <div class="mb-3">
+    <label for="reference" class="form-label">Reference number</label>
+    <div class="form-text mt-0 mb-1" id="reference-hint">For example: W42-0153</div>
+    <input type="text" class="form-control status-input" id="reference" name="reference"
+           value="{{ reference }}" required maxlength="12" autocomplete="off"
+           aria-describedby="reference-hint">
+  </div>
+  <button type="submit" class="btn btn-primary">Check status</button>
+</form>
+
+{% if message %}
+  <div class="alert alert-warning" role="alert">{{ message }}</div>
+{% endif %}
+
+{% if result %}
+  {# What each status means, in plain words. #}
+  {% set meaning = {
+      "Open": "We have received your report. It has not been looked at yet.",
+      "In progress": "Someone is working on this problem.",
+      "Closed": "This report has been dealt with."
+  } %}
+
+  <h2>Report {{ result.reference }}</h2>
+  <dl class="row">
+    <dt class="col-sm-3">Category</dt>
+    <dd class="col-sm-9">{{ result.category }}</dd>
+
+    <dt class="col-sm-3">Reported on</dt>
+    <dd class="col-sm-9">{{ result.created_at.strftime("%d %B %Y") }}</dd>
+
+    <dt class="col-sm-3">Status</dt>
+    <dd class="col-sm-9">
+      <span class="status status-{{ result.status|lower|replace(' ', '-') }}">{{ result.status }}</span>
+      <br>{{ meaning[result.status] }}
+    </dd>
+  </dl>
+{% endif %}
+{% endblock %}

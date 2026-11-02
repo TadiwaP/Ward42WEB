@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Report received - Ward 42 Fix-It{% endblock %}
+
+{% block content %}
+{# data-clear-draft lets our JavaScript know it can delete the saved draft. #}
+<section data-clear-draft="true">
+  <h1>Report received</h1>
+  <p class="lead">Thank you. Your report has been saved.</p>
+
+  <p>Your reference number is:</p>
+  <p class="reference-number">{{ reference }}</p>
+
+  <p>Write this number down. You need it to check what is happening with your report.</p>
+
+  <p>
+    <a class="btn btn-primary" href="{{ url_for('main.status', reference=reference) }}">Check status now</a>
+    <a class="btn btn-outline-secondary" href="{{ url_for('main.home') }}">Back to home</a>
+  </p>
+</section>
+{% endblock %}

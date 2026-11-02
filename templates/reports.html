@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}All reports - Ward 42 Fix-It{% endblock %}
+
+{% block content %}
+<h1>All reports</h1>
+
+{# This filter form works on its own (it reloads the page with ?category=...).
+   Later our JavaScript will also hide and show rows without reloading. #}
+<form method="get" action="{{ url_for('main.reports') }}" class="row g-2 align-items-end mb-3" id="filter-form">
+  <div class="col-12 col-sm-4">
+    <label for="filter-category" class="form-label">Category</label>
+    <select class="form-select" id="filter-category" name="category">
+      <option value="">All categories</option>
+      {% for c in categories %}
+        <option value="{{ c }}" {% if c == selected_category %}selected{% endif %}>{{ c }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-12 col-sm-4">
+    <label for="filter-status" class="form-label">Status</label>
+    <select class="form-select" id="filter-status" name="status">
+      <option value="">All statuses</option>
+      {% for s in statuses %}
+        <option value="{{ s }}" {% if s == selected_status %}selected{% endif %}>{{ s }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-12 col-sm-4">
+    <button type="submit" class="btn btn-primary">Apply filter</button>
+    <a class="btn btn-outline-secondary" id="filter-clear" href="{{ url_for('main.reports') }}">Clear</a>
+  </div>
+</form>
+
+<p id="filter-count" aria-live="polite">
+  Showing {{ reports|length }} report{{ "" if reports|length == 1 else "s" }}.
+</p>
+
+{% if reports %}
+  {# table-responsive lets the table scroll sideways on a narrow phone. #}
+  <div class="table-responsive">
+    <table class="table table-bordered align-middle" id="reports-table">
+      <caption class="visually-hidden">All reports, newest first</caption>
+      <thead>
+        <tr>
+          <th scope="col">Photo</th>
+          <th scope="col">Reference</th>
+          <th scope="col">Category</th>
+          <th scope="col">Street</th>
+          <th scope="col">Status</th>
+          <th scope="col">Reported (UTC)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in reports %}
+          {# data-category and data-status are read by the live filter later. #}
+          <tr data-category="{{ r.category }}" data-status="{{ r.status }}">
+            <td>
+              {% if r.photo_filename %}
+                <img class="thumb" src="{{ url_for('main.photo', filename=r.photo_filename) }}"
+                     alt="Photo sent with report {{ r.reference }}" width="60" height="60" loading="lazy">
+              {% else %}
+                <span class="text-muted">No photo</span>
+              {% endif %}
+            </td>
+            <th scope="row"><a href="{{ url_for('main.report_detail', report_id=r.id) }}">{{ r.reference }}</a></th>
+            <td>{{ r.category }}</td>
+            <td>{{ r.street }}</td>
+            <td><span class="status status-{{ r.status|lower|replace(' ', '-') }}">{{ r.status }}</span></td>
+            <td>{{ r.created_at.strftime("%Y-%m-%d %H:%M") }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  <p>No reports match.</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field_block %}
+{% block title %}Report {{ report.reference }} - Ward 42 Fix-It{% endblock %}
+
+{% block content %}
+<p><a href="{{ url_for('main.reports') }}">Back to all reports</a></p>
+
+<h1>Report {{ report.reference }}</h1>
+
+<dl class="row">
+  <dt class="col-sm-3">Status</dt>
+  <dd class="col-sm-9">
+    <span class="status status-{{ report.status|lower|replace(' ', '-') }}">{{ report.status }}</span>
+  </dd>
+
+  <dt class="col-sm-3">Category</dt>
+  <dd class="col-sm-9">{{ report.category }}</dd>
+
+  <dt class="col-sm-3">Street</dt>
+  <dd class="col-sm-9">{{ report.street }}</dd>
+
+  <dt class="col-sm-3">Description</dt>
+  <dd class="col-sm-9 description-text">{{ report.description }}</dd>
+
+  <dt class="col-sm-3">Reported by</dt>
+  <dd class="col-sm-9">{{ report.reporter_name }}</dd>
+
+  <dt class="col-sm-3">Cell number</dt>
+  <dd class="col-sm-9"><a href="tel:{{ report.reporter_cell }}">{{ report.reporter_cell }}</a></dd>
+
+  <dt class="col-sm-3">Reported on (UTC)</dt>
+  <dd class="col-sm-9">{{ report.created_at.strftime("%d %B %Y, %H:%M") }}</dd>
+</dl>
+
+<h2 class="mt-4">Update the status</h2>
+<form method="post" action="{{ url_for('main.update_status', report_id=report.id) }}" class="status-form">
+  {{ form.hidden_tag() }}
+  {{ field_block(form.status, css_class="form-select") }}
+  <button type="submit" class="btn btn-primary">Update status</button>
+</form>
+
+<h2 class="mt-4">Photo</h2>
+{% if report.photo_filename %}
+  <img class="detail-photo" src="{{ url_for('main.photo', filename=report.photo_filename) }}"
+       alt="Photo of the fault: {{ report.category|lower }} at {{ report.street }}">
+{% else %}
+  <p>No photo was sent with this report.</p>
+{% endif %}
+{% endblock %}

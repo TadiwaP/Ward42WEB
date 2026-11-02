@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Home - Ward 42 Fix-It{% endblock %}
+
+{% block content %}
+<h1>Ward 42 Fix-It</h1>
+<p class="lead">
+  Report a pothole, burst water pipe, broken streetlight or illegal dumping in
+  Ward 42, and follow what happens to your report.
+</p>
+<p>
+  <a class="btn btn-primary" href="{{ url_for('main.report') }}">Report a fault</a>
+  <a class="btn btn-outline-secondary" href="{{ url_for('main.status') }}">Check status</a>
+</p>
+
+<h2 class="mt-4">How to report a fault</h2>
+<p>Watch this short video, or read the steps below it.</p>
+
+{# preload="none" means the video is NOT downloaded until you press play,
+   which saves mobile data. The browser uses the first source it can play. #}
+<video class="w-100 mb-3 tutorial-video" controls preload="none">
+  <source src="{{ url_for('static', filename='media/tutorial.mp4') }}" type="video/mp4">
+  <source src="{{ url_for('static', filename='media/tutorial.webm') }}" type="video/webm">
+  {# Captions for people who are deaf or cannot play sound. #}
+  <track kind="captions" src="{{ url_for('static', filename='media/captions.vtt') }}"
+         srclang="en" label="English" default>
+  Your browser cannot play this video. The steps are written out below.
+</video>
+
+<ol>
+  <li>Tap <strong>Report a fault</strong>.</li>
+  <li>Choose what kind of fault it is and type the street name.</li>
+  <li>Describe the problem, then enter your name and cell number.</li>
+  <li>Add a photo if you can, then tap <strong>Submit report</strong>.</li>
+  <li>Write down your reference number, for example W42-0153.</li>
+  <li>Come back later to <strong>Check status</strong> and type in that number.</li>
+</ol>
+{% endblock %}

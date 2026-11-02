@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field_block, error_summary %}
+{% block title %}Coordinator login - Ward 42 Fix-It{% endblock %}
+
+{% block content %}
+<h1>Coordinator login</h1>
+<p>This page is for the association&rsquo;s coordinator only.</p>
+
+{{ error_summary(form) }}
+
+<form method="post" class="login-form">
+  {{ form.hidden_tag() }}
+
+  {{ field_block(form.username, extra={"autocomplete": "username"}) }}
+  {{ field_block(form.password, extra={"autocomplete": "current-password"}) }}
+
+  <button type="submit" class="btn btn-primary">Log in</button>
+</form>
+{% endblock %}

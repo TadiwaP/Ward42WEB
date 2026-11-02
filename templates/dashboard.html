@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - Ward 42 Fix-It{% endblock %}
+
+{% block content %}
+<h1>Dashboard</h1>
+
+{# The numbers below are filled in by the server, so the page works even if
+   JavaScript is off. Our JavaScript can also fetch fresh numbers from the
+   JSON address in data-summary-url. #}
+<div id="dashboard" data-summary-url="{{ url_for('main.api_summary') }}">
+
+  <p class="lead">Total reports: <strong id="total-count">{{ summary.total }}</strong></p>
+
+  <div class="row">
+    <div class="col-12 col-md-6">
+      <h2 class="h4">Reports by category</h2>
+      <table class="table table-bordered">
+        <caption class="visually-hidden">Number of reports in each category</caption>
+        <thead>
+          <tr><th scope="col">Category</th><th scope="col" class="text-end">Reports</th></tr>
+        </thead>
+        <tbody>
+          {% for name, count in summary.by_category.items() %}
+            <tr>
+              <th scope="row">{{ name }}</th>
+              <td class="text-end" data-category="{{ name }}">{{ count }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="col-12 col-md-6">
+      <h2 class="h4">Reports by status</h2>
+      <table class="table table-bordered">
+        <caption class="visually-hidden">Number of reports with each status</caption>
+        <thead>
+          <tr><th scope="col">Status</th><th scope="col" class="text-end">Reports</th></tr>
+        </thead>
+        <tbody>
+          {% for name, count in summary.by_status.items() %}
+            <tr>
+              <th scope="row">{{ name }}</th>
+              <td class="text-end" data-status="{{ name }}">{{ count }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <p>
+    <button type="button" class="btn btn-outline-secondary" id="refresh-counts">Refresh counts</button>
+    <a href="{{ url_for('main.api_summary') }}">View the raw JSON</a>
+  </p>
+  <p id="refresh-message" class="form-text" aria-live="polite"></p>
+</div>
+{% endblock %}

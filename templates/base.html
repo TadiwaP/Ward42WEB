@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+{#
+  base.html - the shared layout. Every other page "extends" this file and
+  only fills in the blocks (title, content, scripts), so the header,
+  navigation and footer are written once and look the same everywhere.
+#}
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  {# Makes the page fit a phone screen instead of shrinking a desktop page. #}
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#14452f">
+  {# The PWA files: the manifest and the icons (also used as the tab icon). #}
+  <link rel="manifest" href="{{ url_for('main.manifest') }}">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='icons/icon-192.png') }}">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='icons/icon-192.png') }}">
+  <title>{% block title %}Ward 42 Fix-It{% endblock %}</title>
+
+  {# Bootstrap is stored in our own static folder (not a CDN), so it also
+     works with weak signal and offline later when we add the PWA. #}
+  <link rel="stylesheet" href="{{ url_for('static', filename='vendor/bootstrap/bootstrap.min.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  {% block extra_head %}{% endblock %}
+</head>
+
+<body class="d-flex flex-column min-vh-100">
+
+  {# First thing a keyboard or screen reader user reaches: jump past the menu. #}
+  <a class="visually-hidden-focusable skip-link" href="#main-content">Skip to main content</a>
+
+  {# One small helper so we do not repeat the same link code for every menu item.
+     It marks the page you are on (aria-current) for screen readers. #}
+  {% macro nav_link(endpoint, label) %}
+    <li class="nav-item">
+      <a class="nav-link{% if request.endpoint == endpoint %} active{% endif %}"
+         href="{{ url_for(endpoint) }}"
+         {% if request.endpoint == endpoint %}aria-current="page"{% endif %}>{{ label }}</a>
+    </li>
+  {% endmacro %}
+
+  <header>
+    <nav class="navbar navbar-expand-md navbar-dark site-nav" aria-label="Main menu">
+      <div class="container">
+        <a class="navbar-brand" href="{{ url_for('main.home') }}">Ward 42 Fix-It</a>
+
+        {# The "hamburger" button that opens the menu on small screens. #}
+        <button class="navbar-toggler" type="button"
+                data-bs-toggle="collapse" data-bs-target="#nav-menu"
+                aria-controls="nav-menu" aria-expanded="false"
+                aria-label="Show or hide the menu">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="nav-menu">
+          <ul class="navbar-nav me-auto">
+            {{ nav_link('main.home', 'Home') }}
+            {{ nav_link('main.report', 'Report a fault') }}
+            {{ nav_link('main.status', 'Check status') }}
+            {% if session.get('coordinator_id') %}
+              {{ nav_link('main.reports', 'All reports') }}
+              {{ nav_link('main.dashboard', 'Dashboard') }}
+            {% endif %}
+          </ul>
+
+          <ul class="navbar-nav">
+            {% if session.get('coordinator_id') %}
+              <li class="nav-item">
+                {# Logging out changes state, so it is a POST form with a CSRF token. #}
+                <form method="post" action="{{ url_for('main.logout') }}">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="btn btn-outline-light btn-sm">Log out</button>
+                </form>
+              </li>
+            {% else %}
+              {{ nav_link('main.login', 'Coordinator login') }}
+            {% endif %}
+          </ul>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  {# Messages such as "You are now logged in." They appear once, then vanish. #}
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="container mt-3">
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}" role="alert">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  {# The unique content of each page goes here. Each page needs one <h1>. #}
+  <main id="main-content" class="container flex-grow-1 py-4" tabindex="-1">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer py-3 mt-auto">
+    <div class="container">
+      <p class="mb-1">Ward 42 Fix-It, for the Mamelodi East Residents&rsquo; Association.</p>
+      <p class="mb-0 small">
+        Your name and cell number are used only to follow up on your report,
+        and are never shown publicly.
+      </p>
+    </div>
+  </footer>
+
+  {# Scripts sit at the bottom and load with "defer" so the page appears first. #}
+  <script src="{{ url_for('static', filename='vendor/bootstrap/bootstrap.bundle.min.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

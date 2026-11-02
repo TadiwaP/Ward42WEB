@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field_block, error_summary %}
+{% block title %}Report a fault - Ward 42 Fix-It{% endblock %}
+
+{% block content %}
+<h1>Report a fault</h1>
+<p>Fields marked with * must be filled in.</p>
+
+{{ error_summary(form) }}
+
+{# enctype="multipart/form-data" is needed so the photo can be uploaded. #}
+<form method="post" enctype="multipart/form-data" id="report-form">
+  {# The hidden CSRF token. Without it the server rejects the form. #}
+  {{ form.hidden_tag() }}
+
+  {{ field_block(form.category, css_class="form-select") }}
+
+  {{ field_block(form.street, hint="For example: 12 Tsamaya Road, or next to the spaza shop.") }}
+
+  {{ field_block(form.description, hint="Between 10 and 500 characters.",
+                 extra={"rows": 5, "maxlength": 500}) }}
+
+  {{ field_block(form.reporter_name, extra={"autocomplete": "name"}) }}
+
+  {{ field_block(form.reporter_cell, hint="10 digits, starting with 0.",
+                 extra={"type": "tel", "inputmode": "numeric", "maxlength": 10,
+                        "autocomplete": "tel"}) }}
+
+  {{ field_block(form.photo, hint="Optional. JPEG, PNG or WebP, smaller than 2 MB.",
+                 extra={"accept": "image/jpeg,image/png,image/webp"}) }}
+  {# Filled in by JavaScript when it makes a big photo smaller. #}
+  <p id="photo-info" class="form-text" aria-live="polite"></p>
+
+  {# Filled in by JavaScript later: tells the person their typing is saved. #}
+  <p id="draft-message" class="form-text" aria-live="polite"></p>
+
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary">Submit report</button>
+  </div>
+</form>
+{% endblock %}
