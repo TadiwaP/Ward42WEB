@@ -1,12 +1,6 @@
 """
-app.py - the entry point. `flask run` looks for this file and the `app`
+app.py -  will be the entry point. `flask run` looks for this file and the `app`
 object at the bottom.
-
-It puts the pieces together:
-  config.py  -> settings
-  models.py  -> database tables
-  routes.py  -> pages and URLs
-and adds the security protections that apply to every page.
 """
 
 import os

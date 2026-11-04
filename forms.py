@@ -1,13 +1,4 @@
-"""
-forms.py - the forms, and the SERVER-SIDE rules for what is allowed in them.
 
-Why validate on the server when JavaScript will already check in the browser?
-Because anyone can switch JavaScript off or send a request with a tool like
-REST Client. Browser checks are for convenience; these checks are for safety
-(Study Guide, Topic 7, Data Validation).
-
-Flask-WTF also adds a hidden CSRF token to every form that extends FlaskForm.
-"""
 
 from flask import current_app
 from flask_wtf import FlaskForm
@@ -110,7 +101,7 @@ class ReportForm(FlaskForm):
         """WTForms runs any method named validate_<fieldname> automatically."""
         file = field.data
 
-        # No file chosen: that is fine, the photo is optional.
+        # No file chosen because the photo is optional.
         if file is None or not getattr(file, "filename", ""):
             return
 

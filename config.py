@@ -1,9 +1,4 @@
-"""
-config.py - all the settings for Ward 42 Fix-It in one place.
-
-Keeping settings here (instead of scattered through the code) makes it
-easy to see what the app depends on, and easy to change when we deploy.
-"""
+#Stores all my settings and stuff 
 
 import os
 

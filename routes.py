@@ -63,15 +63,11 @@ def login_required(view):
 
 
 def save_photo(file):
-    """Save an uploaded photo safely and return the path to store in the database.
-
-    The form has already checked that the file is a real JPEG, PNG or WebP.
-    """
-    # secure_filename removes dangerous characters, e.g. "../../x.png" -> "x.png"
+   
+    # secure_filename will removes dangerous characters, e.g. "../../x.png" -> "x.png"
     safe_name = secure_filename(file.filename)
     stem = os.path.splitext(safe_name)[0][:30]
 
-    # Use the REAL image type for the ending, not what the person typed.
     extension = EXTENSION_FOR_TYPE[detect_image_type(file)]
 
     # uuid4 makes a random unique name, so two photos can never overwrite

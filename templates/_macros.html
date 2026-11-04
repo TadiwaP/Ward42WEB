@@ -1,12 +1,5 @@
 {#
   _macros.html - one small helper used by every form.
-
-  A "macro" is like a Python function for templates. field_block() draws one
-  form field: its label, the box, an optional hint, and the error message.
-  Writing it once means every field is built the same, accessible way.
-
-  The label is linked to the box (label "for" = box "id"), and the box points
-  to its hint and error with aria-describedby, so a screen reader reads them out.
 #}
 {% macro field_block(field, css_class="form-control", hint="", extra={}) %}
   {# Work out which hint and error text belong to this field. #}

@@ -1,11 +1,4 @@
-"""
-models.py - the database tables, written as Python classes.
 
-Flask-SQLAlchemy turns each class below into a table in fixit.db and each
-attribute into a column. Because we use this ORM (object-relational mapper)
-for every query, user input is never pasted into SQL text, which is what
-stops SQL injection (Study Guide, Topic 7).
-"""
 
 from datetime import datetime, timezone
 

@@ -91,6 +91,7 @@ static/manifest.json web app manifest
 static/vendor/       Bootstrap 5
 static/media/        tutorial video and captions
 uploads/             stored photos (not in the repository)
+d1_security_review/app_v1.py , app_v2.py  Tests for Question D
 ```
 
 ## Security and privacy (POPIA)

@@ -1,14 +1,4 @@
-"""
-seed_demo.py - adds made-up reports so your pages look realistic for screenshots.
 
-Run it ONCE, from the project folder, with (venv) active:
-
-    python seed_demo.py
-
-All names and cell numbers are invented (cell numbers are 071000000x).
-To remove the demo data afterwards, stop the app and delete fixit.db: a clean
-database (and the test coordinator) is created again next time the app starts.
-"""
 
 from datetime import timedelta
 
